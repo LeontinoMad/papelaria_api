@@ -48,11 +48,15 @@ router.post("/", verificaToken, async (req: any, res) => {
     res.status(400).json({ erro: "Informe nome, marca, categoria e preco" });
     return;
   }
+  
 
   try {
     const produto = await prisma.produto.create({
       data: { nome, marca, categoria, preco, usuarioId: userLogadoId },
     });
+  
+  
+  
     res.status(201).json(produto);
   } catch (error) {
     res.status(400).json(error);
@@ -93,3 +97,15 @@ router.put("/:id", verificaToken, async (req, res) => {
 });
 
 export default router;
+
+// Inclusão:
+// {
+// "nome": "",
+// "marca": "",
+// "categoria": "Escritorio" "Artesanal" "Escolar", 
+// "preco":
+// }
+
+// Token Header:
+// Name: Authorization
+// Value: Bearer [token]

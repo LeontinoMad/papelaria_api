@@ -20,7 +20,8 @@ model Usuario {
   senha        String   @db.VarChar(60)   // senha deve ser varchar(60)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt  
-  produtos      Produto[]
+  tentativa    Float?   @default(0)
+  produtos     Produto[]
   logs         Log[]
   @@map("usuarios")
 }
