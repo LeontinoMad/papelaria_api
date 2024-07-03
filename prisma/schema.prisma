@@ -16,14 +16,15 @@ datasource db {
 model Usuario {
   id           Int      @id @default(autoincrement())
   nome         String   @db.VarChar(60)
-  email        String   @db.VarChar(40)
-  senha        String   @db.VarChar(60)   // senha deve ser varchar(60)
+  email        String   @unique
+  senha        String   @db.VarChar(60)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt  
-  produtos      Produto[]
+  produtos     Produto[]
   logs         Log[]
   @@map("usuarios")
 }
+
 
 model Produto {
   id           Int      @id @default(autoincrement())
