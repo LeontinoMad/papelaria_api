@@ -55,8 +55,6 @@ router.post("/", verificaToken, async (req: any, res) => {
       data: { nome, marca, categoria, preco, usuarioId: userLogadoId },
     });
   
-  
-  
     res.status(201).json(produto);
   } catch (error) {
     res.status(400).json(error);
