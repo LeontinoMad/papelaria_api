@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `usuarios` ADD COLUMN `ultimaTentativa` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3);

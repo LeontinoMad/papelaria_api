@@ -26,11 +26,6 @@ router.post("/", async (req, res) => {
       where: { email }
     })
 
-    const bloqueio = await prisma.usuario.findMany({
-      where: { email: '{usuario}' }
-    })
-
-    console.log(bloqueio[6])
 
     
     if (usuario == null) {
@@ -53,6 +48,12 @@ router.post("/", async (req, res) => {
       process.env.JWT_KEY as string,
       { expiresIn: "1h" },
     )
+
+    // Atualiza os campos de condição para "bloqueio"
+    // await prisma.usuario.update({
+    //   where: { id: usuario.id },
+    //   data: { tentativa: 0, ultimaTentativa: new Date() },
+    // })
     
     res.status(200).json({
       id: usuario.id,
@@ -61,10 +62,20 @@ router.post("/", async (req, res) => {
       token
     })
   } else {
-    // res.status(400).json({ erro: "Senha incorreta" })
-    
-    // tentativas += 1
-    
+
+    // Registra a primeira tentativa de login falho:
+    // if (usuario.tentativa == 0){
+    //   await prisma.usuario.update({
+    //     where: { id: usuario.id },
+    //     data: { ultimaTentativa: new Date() },
+    //   })
+    // }
+
+    const bloqueio = await prisma.usuario.update({
+      where: { id: usuario.id },
+      data: { tentativa: { increment: 1 } },
+    })
+
     await prisma.log.create({
       data: { 
         descricao: "Tentativa de Acesso Inválida", 
@@ -73,13 +84,15 @@ router.post("/", async (req, res) => {
       }
     })
     
-      // if (tentativas >= 3){
-      //   res.status(400).json({ erro: "Número de tentativas inválidas máximas alcançadas. Por favor, aguarde até ser liberado um novo login." })
-      // } else {
-       {
-         res.status(400).json({ erro: mensaPadrao })
-      }
+      if (bloqueio.tentativa != null){
 
+        if (bloqueio.tentativa >= 3){
+          res.status(400).json({ erro: "Número de tentativas inválidas máximas alcançadas. Por favor, aguarde até ser liberado um novo login." })
+        } else {
+          res.status(400).json({ erro: mensaPadrao })
+        }
+   
+      }
 
     }
   } catch (error) {

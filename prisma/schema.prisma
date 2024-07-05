@@ -21,6 +21,7 @@ model Usuario {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt  
   tentativa    Float?   @default(0)
+  ultimaTentativa  DateTime @default(now())
   produtos     Produto[]
   logs         Log[]
   @@map("usuarios")
