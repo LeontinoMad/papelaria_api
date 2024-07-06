@@ -1,9 +1,15 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import requests
+import os
 
 token = ""
 usuarioNome = ""
+
+url = "http://localhost:3000/"
+
+def limparTerminal():
+    os.system("cls")
 
 def titulo(texto, sublinhado="-"):
   print()
@@ -13,10 +19,15 @@ def titulo(texto, sublinhado="-"):
 def login():
   titulo("Login do Usuário")
 
-  email = input("E-mail: ")
-  senha = input("Senha.: ")
+  # Login real:
+#   email = input("E-mail: ")
+#   senha = input("Senha.: ")
 
-  response = requests.post("http://localhost:3000/login", 
+  # Login preguiçoso:
+  email = "Pedro@gmail.com"
+  senha = "Pedro@123"
+
+  response = requests.post(url + "/login", 
     json={"email": email, "senha": senha}
   )
 
@@ -46,7 +57,7 @@ def inclusao():
   categoria = input("Material.........: ")
   preco = float(input("Preço..: "))
 
-  response = requests.post("http://localhost:3000/produtos", 
+  response = requests.post(url + "/produtos", 
     json={"nome": nome, "marca": marca, "categoria": categoria, "preco": preco},
     headers={"Authorization": f"Bearer {token}"}
   )
@@ -57,23 +68,86 @@ def inclusao():
   else:
     print(f"Erro... Não foi possível cadastrar o produto")
 
+def listar():
+    titulo("Listagem dos Produtos Cadastrados")
+
+    if token == "":
+        print("Erro... Você deve logar-se primeiro")
+        return
+
+    response = requests.get(url + "/produtos")
+
+    if response.status_code == 200:
+      listagem = response.json()
+    
+      for i in range(len(listagem)):
+        print()
+        print   (f"Código.....: {listagem[i]['id']}")
+        print   (f"Produto....: {listagem[i]['nome']}")
+        print   (f"Marca......: {listagem[i]['marca']}")
+        print   (f"Categoria..: {listagem[i]['categoria']}")
+        print   (f"Preço......: R${listagem[i]['preco']}")
+
+    elif response.status_code == 404:
+        print("Lista não encontrada.")
+
+def alterar():
+
+    if token == "":
+        print("Erro... Você deve logar-se primeiro")
+        return
+
+    listar()
+    titulo("Alterar um ou mais Produtos Cadastrados")
+
+
+    idProduto = input("Qual o id do Produto que você deseja alterar? ")
+
+    # Valida se o ID inserido é válido
+    response = requests.get(url + "/produto")
+    idValido = False
+    if response.status_code == 200:
+        validaId = response.json()
+
+        for i in range(len(validaId)):
+            if idProduto == validaId[i]['id']:
+                idValido = True
+
+    if idValido == False:
+        print("Por favor, insira um ID válido.")
+        return
+    
+    print("Insira as informações que você deseja alterar .")
+    nome = input("Nome do Produto: ")
+    marca = input("Marca..........: ")
+    categoria = input("Material.........: ")
+    preco = float(input("Preço..: "))
+
+    response = requests.put ((url + "/produto" + idProduto),
+            json={"nome": nome, "marca": marca, "categoria": categoria, "preco": preco},
+            headers={"Authorization": f"Bearer {token}"}
+    )
+
+    if response.status_code == 200:
+        print()
+        print(f"Sucesso! O produto {idProduto} foi alterado com sucesso!")
+    else:
+        print("Não foi possível alterar o produto. Tente novamente.")
+
 def grafico():
   titulo("Gráfico comparando Categorias de Produtos")
 
-  categoria1 = input("1ª Categoria: ")
-  categoria2 = input("2ª Categoria: ")
-  categoria3 = input("3ª Categoria: ")
+  # Insert das Categorias:
+#   categoria1 = input("1ª Categoria: ")
+#   categoria2 = input("2ª Categoria: ")
+#   categoria3 = input("3ª Categoria: ")
 
-  # (): significa que é uma tupla (característica: é imutável)
-  faixas = ("Escolar", "Escritorio", "Artesanal")
-  # {}: significa que é um dicionário (chave: valor)
-  produtos = {
-      categoria1: [0, 0, 0],
-    #   categoria2: [0, 0, 0],
-    #   categoria3: [0, 0, 0],
-  }
+  # Insert Preguiçoso:
+  categoria1 = "Escolar"
+  categoria2 = "Escritorio"
+  categoria3 = "Artesanal"
 
-  response = requests.get("http://localhost:3000/produtos")
+  response = requests.get(url + "/produtos")
 
   if response.status_code != 200:
     print("Erro... Não foi possível conectar com a API")
@@ -81,53 +155,40 @@ def grafico():
   
   dados = response.json()
 
-#  print(dados)
+  countCategoria1 = 0
+  countCategoria2 = 0
+  countCategoria3 = 0
 
   for linha in dados:
     if linha['categoria'] == categoria1:
-      if linha['categoria'] == 'Escolar':
-        produtos[categoria1][0] += 1
-    #   elif linha['categoria'] <= 10:
-        # produtos[categoria1][1] += 1          
-      else:
-        produtos[categoria1][2] += 1   
+        countCategoria1 += 1
     elif linha['categoria'] == categoria2:
-      if linha['categoria'] == 'Escritorio':
-        produtos[categoria2][0] += 1
-    #   elif linha['categoria'] <= 10:
-        # produtos[categoria2][1] += 1          
-      else:
-        produtos[categoria2][2] += 1   
+        countCategoria2 += 1
     elif linha['categoria'] == categoria3:
-      if linha['categoria'] == 'Artesanal':
-        produtos[categoria3][0] += 1
-    #   elif linha['categoria'] <= 10:
-        # produtos[categoria3][1] += 1          
-      else:
-        produtos[categoria3][2] += 1   
-          
+        countCategoria3 += 1
 
-  x = np.arange(len(faixas))  # the label locations
-  width = 0.25  # the width of the bars
-  multiplier = 0
 
-  fig, ax = plt.subplots(layout='constrained')
 
-  for attribute, measurement in produtos.items():
-      offset = width * multiplier
-      rects = ax.bar(x + offset, measurement, width, label=attribute)
-      ax.bar_label(rects, padding=3)
-      multiplier += 1
+  labels = categoria1, categoria2, categoria3
+  sizes = [countCategoria1, countCategoria2, countCategoria3]
+#   sizes = [1, 5, 45]
 
-  # Add some text for labels, title and custom x-axis tick labels, etc.
-  ax.set_ylabel('Quantidades')
-  ax.set_title('Gráfico comparando Categorias de Produtos')
-  ax.set_xticks(x + width, faixas)
-  ax.legend(loc='upper left', ncols=3)
-  ax.set_ylim(0, 5)
+  fig, ax = plt.subplots()
+  def func(pct, allvals):
+        print(f"PCT: {pct}")
+        print(f"Allvals: {allvals}")
+        teste = 1*sum(allvals)
+        absolute = int(pct/100.*sum(allvals))
+        print(f"Absolute: {absolute}")
+        print(f"Teste: {teste}")
+        return "{:d}".format(absolute)
+
+  ax.pie(sizes, labels=labels, autopct=lambda pct: func(pct, sizes))
+
 
   plt.show()
 
+limparTerminal()
 # ----------------------------------- Programa Principal
 while True:
   if token: 
@@ -147,7 +208,15 @@ while True:
     login()
   elif opcao == 2:
     inclusao()
+  elif opcao == 3:
+    listar()
+  elif opcao == 4:
+    alterar()
   elif opcao == 7:
     grafico()
-  else:
+  elif opcao == 8:
     break
+  elif opcao == 9:
+    limparTerminal()
+  else:
+    print("Insira uma opção válida.")

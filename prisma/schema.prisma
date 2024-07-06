@@ -38,7 +38,7 @@ model Produto {
   usuarioId    Int
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt  
-  material     Materiais @default(Escolar)
+  // material     Materiais @default(Escolar)
   deleted      Boolean  @default(false)
   @@map("produtos")
 }
