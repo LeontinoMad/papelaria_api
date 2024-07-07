@@ -20,11 +20,11 @@ def login():
   titulo("Login do Usuário")
 
   # Login real:
-#   email = input("E-mail: ")
-#   senha = input("Senha.: ")
+  # email = input("E-mail: ")
+  # senha = input("Senha.: ")
 
   # Login preguiçoso:
-  email = "Pedro@gmail.com"
+  email = "jinior@gmail.com"
   senha = "Pedro@123"
 
   response = requests.post(url + "/login", 
@@ -134,18 +134,48 @@ def alterar():
     else:
         print("Não foi possível alterar o produto. Tente novamente.")
 
+def excluir():
+    titulo("Excluir Produtos Cadastrados")
+
+
+    idProduto = input("Qual o id do Produto que você deseja Excluir? ")
+
+    # Valida se o ID inserido é válido
+    response = requests.get(url + "/produto")
+    idValido = False
+    if response.status_code == 200:
+        validaId = response.json()
+
+        for i in range(len(validaId)):
+            if idProduto == validaId[i]['id']:
+                idValido = True
+
+    if idValido == False:
+        print("Por favor, insira um ID válido.")
+        return
+   
+    response = requests.delete ((url + "/produto" + idProduto),
+            json={"id"},
+            headers={"Authorization": f"Bearer {token}"}
+    )
+    if response.status_code == 200:
+        print()
+        print(f"Sucesso! O produto {idProduto} foi Excluido com sucesso!")
+    else:
+        print("Não foi possível Excluir o produto. Tente novamente.")
+
 def grafico():
   titulo("Gráfico comparando Categorias de Produtos")
 
   # Insert das Categorias:
-#   categoria1 = input("1ª Categoria: ")
-#   categoria2 = input("2ª Categoria: ")
-#   categoria3 = input("3ª Categoria: ")
+  categoria1 = input("1ª Categoria: ")
+  categoria2 = input("2ª Categoria: ")
+  categoria3 = input("3ª Categoria: ")
 
   # Insert Preguiçoso:
-  categoria1 = "Escolar"
-  categoria2 = "Escritorio"
-  categoria3 = "Artesanal"
+  # categoria1 = "Escolar"
+  # categoria2 = "Escritorio"
+  # categoria3 = "Artesanal"
 
   response = requests.get(url + "/produtos")
 
@@ -212,6 +242,8 @@ while True:
     listar()
   elif opcao == 4:
     alterar()
+  elif opcao == 5:
+    excluir()
   elif opcao == 7:
     grafico()
   elif opcao == 8:
