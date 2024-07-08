@@ -1,4 +1,4 @@
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt # type: ignore
 import numpy as np
 import requests
 import os
@@ -24,7 +24,7 @@ def login():
   # senha = input("Senha.: ")
 
   # Login preguiçoso:
-  email = "jinior@gmail.com"
+  email = "Pedro@gmail.com"
   senha = "Pedro@123"
 
   response = requests.post(url + "/login", 
@@ -101,29 +101,27 @@ def alterar():
     titulo("Alterar um ou mais Produtos Cadastrados")
 
 
-    idProduto = input("Qual o id do Produto que você deseja alterar? ")
+    idProduto = int(input("Qual o id do Produto que você deseja alterar? "))
 
     # Valida se o ID inserido é válido
-    response = requests.get(url + "/produto")
-    idValido = False
-    if response.status_code == 200:
-        validaId = response.json()
+    response = requests.get(url + "produtos")
+    produtos = response.json()
 
-        for i in range(len(validaId)):
-            if idProduto == validaId[i]['id']:
-                idValido = True
+    produto = [x for x in produtos if x['id'] == idProduto]
 
-    if idValido == False:
-        print("Por favor, insira um ID válido.")
-        return
+    if len(produto) == 0:
+      print("Por favor, insira um ID válido.")
+      return
     
     print("Insira as informações que você deseja alterar .")
-    nome = input("Nome do Produto: ")
-    marca = input("Marca..........: ")
-    categoria = input("Material.........: ")
-    preco = float(input("Preço..: "))
+    nome =        input("Nome do Produto: ")
+    marca =       input("Marca..........: ")
+    categoria =   input("Material.......: ")
+    preco = float(input("Preço..........: "))
 
-    response = requests.put ((url + "/produto" + idProduto),
+    urlFinal = url + "produtos/" + str(idProduto)
+
+    response = requests.put(urlFinal,
             json={"nome": nome, "marca": marca, "categoria": categoria, "preco": preco},
             headers={"Authorization": f"Bearer {token}"}
     )
@@ -138,44 +136,74 @@ def excluir():
     titulo("Excluir Produtos Cadastrados")
 
 
-    idProduto = input("Qual o id do Produto que você deseja Excluir? ")
+    idProduto = int(input("Qual o id do Produto que você deseja Excluir? "))
 
     # Valida se o ID inserido é válido
-    response = requests.get(url + "/produto")
-    idValido = False
-    if response.status_code == 200:
-        validaId = response.json()
+    response = requests.get(url + "produtos")
+    produtos = response.json()
 
-        for i in range(len(validaId)):
-            if idProduto == validaId[i]['id']:
-                idValido = True
+    produto = [x for x in produtos if x['id'] == idProduto]
 
-    if idValido == False:
-        print("Por favor, insira um ID válido.")
-        return
+    if len(produto) == 0:
+      print("Por favor, insira um ID válido.")
+      return
    
-    response = requests.delete ((url + "/produto" + idProduto),
-            json={"id"},
+    urlFinal = url + "produtos/" + str(idProduto)
+
+    response = requests.delete(urlFinal,
             headers={"Authorization": f"Bearer {token}"}
     )
+
     if response.status_code == 200:
         print()
         print(f"Sucesso! O produto {idProduto} foi Excluido com sucesso!")
     else:
         print("Não foi possível Excluir o produto. Tente novamente.")
 
+
+def ordenado():
+  titulo("5 produtos mais caros da Papelaria")
+
+  if token == "":
+        print("Erro... Você deve logar-se primeiro")
+        return
+
+  response = requests.get(url + "/produtos",
+          headers={"Authorization": f"Bearer {token}"})
+
+  if response.status_code == 200:
+      listagem = response.json()
+
+  maisCaros = sorted(listagem, key=lambda x: float(x['preco']), reverse=True)
+
+  limite = 0
+  for produto in maisCaros:
+      print(f"Código.....: {produto['id']}")
+      print(f"Produto....: {produto['nome']}")
+      print(f"Marca......: {produto['marca']}")
+      print(f"Categoria..: {produto['categoria']}")
+      print(f"Preço......: R${produto['preco']}")
+      print() 
+
+      limite += 1
+
+      if limite == 5:
+         break
+
+
+
 def grafico():
   titulo("Gráfico comparando Categorias de Produtos")
 
   # Insert das Categorias:
-  categoria1 = input("1ª Categoria: ")
-  categoria2 = input("2ª Categoria: ")
-  categoria3 = input("3ª Categoria: ")
+  # categoria1 = input("1ª Categoria: ")
+  # categoria2 = input("2ª Categoria: ")
+  # categoria3 = input("3ª Categoria: ")
 
   # Insert Preguiçoso:
-  # categoria1 = "Escolar"
-  # categoria2 = "Escritorio"
-  # categoria3 = "Artesanal"
+  categoria1 = "Escolar"
+  categoria2 = "Escritorio"
+  categoria3 = "Artesanal"
 
   response = requests.get(url + "/produtos")
 
@@ -201,16 +229,10 @@ def grafico():
 
   labels = categoria1, categoria2, categoria3
   sizes = [countCategoria1, countCategoria2, countCategoria3]
-#   sizes = [1, 5, 45]
 
   fig, ax = plt.subplots()
   def func(pct, allvals):
-        print(f"PCT: {pct}")
-        print(f"Allvals: {allvals}")
-        teste = 1*sum(allvals)
         absolute = int(pct/100.*sum(allvals))
-        print(f"Absolute: {absolute}")
-        print(f"Teste: {teste}")
         return "{:d}".format(absolute)
 
   ax.pie(sizes, labels=labels, autopct=lambda pct: func(pct, sizes))
@@ -225,14 +247,15 @@ while True:
     titulo(f"Cadastro de Produtos  - Usuário {usuarioNome}", "=")
   else:
     titulo("Cadastro de Produtos ", "=")
-  print("1. Fazer Login")
-  print("2. Incluir Produtos")
-  print("3. Listar Produtos")
-  print("4. Alterar Dados")
-  print("5. Excluir Produto")
-  print("6. Agrupar por Categoria")
-  print("7. Gráfico Relacionando Faixas Etárias")
-  print("8. Finalizar")
+  print("1. Fazer Login.........................:")
+  print("2. Incluir Produtos....................:")
+  print("3. Listar Produtos.....................:")
+  print("4. Alterar Dados.......................:")
+  print("5. Excluir Produto.....................:")
+  print("6. Agrupar por Categoria...............:")
+  print("7. Gráfico de Tipo de Produto..........:")
+  print("8. Finalizar...........................:")
+  print()
   opcao = int(input("Opção: "))
   if opcao == 1:
     login()
@@ -244,6 +267,8 @@ while True:
     alterar()
   elif opcao == 5:
     excluir()
+  elif opcao == 6:
+    ordenado()
   elif opcao == 7:
     grafico()
   elif opcao == 8:
